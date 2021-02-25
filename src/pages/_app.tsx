@@ -4,7 +4,7 @@ import '../styles/global.css';
 function MyApp({ Component, pageProps }) {
   return (
     <ChagellendProvider>
-      <Component {...pageProps} />
+        <Component {...pageProps} />
     </ChagellendProvider>
   )}
 export default MyApp

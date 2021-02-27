@@ -1,5 +1,7 @@
 import { createContext, useState, ReactNode, useEffect } from 'react';
+import Cookies from 'js-cookie';
 import challengesJson from '../../challenges.json';
+import { LevelUpModal } from '../components/LevelUpModal';
 
 interface Challenges{
     type: 'body' | 'eye';
@@ -17,30 +19,47 @@ interface ChagellendContextDate{
     startNewChagellend: () => void;
     resetChallenge: () => void;
     completeChallenge: () => void;
+    closeLevelUpModal: () => void;
 }
 
 interface ChagellendProps{
     children: ReactNode;
+    level: number;
+    currentExperience: number;
+    chagellendCompleted: number
 }
 
 export const ChagellendContext = createContext({} as ChagellendContextDate);
 
-export function ChagellendProvider({children}: ChagellendProps){
-    const [level, setLevel] = useState(1);
-    const [currentExperience, setCurrentExperience] = useState(0)
-    const [chagellendCompleted, setChagellendCumpleted] = useState(0)
-
+export function ChagellendProvider({
+        children, ...rest
+    }: ChagellendProps){
+    const [level, setLevel] = useState(rest.level ?? 1);
+    const [currentExperience, setCurrentExperience] = useState(rest.currentExperience ?? 0)
+    const [chagellendCompleted, setChagellendCumpleted] = useState(rest.chagellendCompleted ?? 0)
     const [actChallengs, setActChallengs] = useState(null)
-
+    const [isLevelUpModalOpen, setIsLevelModalOpen] = useState(false)
     const experienceToNextLevel = Math.pow((level + 2) * 4, 2)
 
     function levelUp(){
       setLevel(level + 1);
+      setIsLevelModalOpen(true)
+    }
+
+    function closeLevelUpModal(){
+        setIsLevelModalOpen(false)
     }
 
     useEffect(() => {
         Notification.requestPermission();
-    }, [])  
+    }, [])
+
+    useEffect(() => {
+        Cookies.set('level', String(level));
+        Cookies.set('currentExperience', String(currentExperience));
+        Cookies.set('chagellendCompleted', String(chagellendCompleted));
+
+    }, [level, currentExperience, chagellendCompleted])
 
     function startNewChagellend(){
         const challegensRandomIndex = Math.floor(Math.random() * challengesJson.length)
@@ -95,10 +114,12 @@ export function ChagellendProvider({children}: ChagellendProps){
                 startNewChagellend,
                 actChallengs,
                 resetChallenge,
-                completeChallenge
+                completeChallenge,
+                closeLevelUpModal
             }}
         >
             {children}
+            {isLevelUpModalOpen && <LevelUpModal />}
         </ChagellendContext.Provider>
     );
 
